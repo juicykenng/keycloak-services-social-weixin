@@ -151,6 +151,16 @@ public class MockedKeycloakSession implements KeycloakSession {
             @Override
             public void setOrganization(OrganizationModel organization) {
             }
+
+            @Override
+            public Permissions getPermissions() {
+                return null;
+            }
+
+            @Override
+            public UserModel getUser() {
+                return null;
+            }
         };
     }
 

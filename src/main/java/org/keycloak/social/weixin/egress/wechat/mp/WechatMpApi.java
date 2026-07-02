@@ -27,14 +27,21 @@ public class WechatMpApi {
 
     @SneakyThrows
     public AccessTokenResponse getAccessToken(String appId, String appSecret) {
-        logger.info(String.format("getAccessToken by %s%n%s%n", appId, appSecret));
+        logger.info(String.format("getAccessToken for appId=%s", appId));
         var res =
                 SimpleHttp.doGet(String.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential" +
                                 "&appid=%s&secret=%s", appId, appSecret),
                         session).asJson(AccessTokenResponse.class);
 
-        logger.info(String.format("res is %s%n", res));
+        if (res == null || res.hasError() || res.access_token == null) {
+            String message = res != null && res.errmsg != null
+                    ? String.format("WeChat access token error %s: %s", res.errcode, res.errmsg)
+                    : "Failed to get WeChat access token";
+            logger.error(message);
+            throw new RuntimeException(message);
+        }
 
+        logger.info("WeChat access token retrieved successfully");
         return res;
     }
 
@@ -43,19 +50,23 @@ public class WechatMpApi {
         logger.info(String.format("createTmpQrCode by %s%n", ticketRequest));
 
         AccessTokenResponse tokenResponse = this.getAccessToken(appId, appSecret);
-        if (tokenResponse == null || tokenResponse.access_token == null) {
-            logger.error("Failed to get access token");
-            throw new RuntimeException("Failed to get WeChat access token");
-        }
 
-        String url = String.format("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s", 
+        String url = String.format("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s",
                 tokenResponse.access_token);
-        
+
         var res = SimpleHttp.doPost(url, session)
                 .json(ticketRequest)
                 .asJson(TicketResponse.class);
 
-        logger.info(String.format("res is %s%n", res));
+        if (res == null || res.hasError() || res.ticket == null) {
+            String message = res != null && res.errmsg != null
+                    ? String.format("WeChat QR code error %s: %s", res.errcode, res.errmsg)
+                    : "Failed to create WeChat QR code ticket";
+            logger.error(message);
+            throw new RuntimeException(message);
+        }
+
+        logger.info("WeChat QR code ticket created successfully");
 
         this.saveTicketStatus(res.ticket, res.expire_seconds);
 

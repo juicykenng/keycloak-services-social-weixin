@@ -14,7 +14,9 @@ import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginCon
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
+import org.keycloak.broker.provider.AbstractIdentityProvider;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.UserAuthenticationIdentityProvider;
 import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.common.ClientConnection;
@@ -65,7 +67,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import org.keycloak.quarkus.runtime.integration.resteasy.QuarkusHttpRequest;
 import org.jboss.resteasy.reactive.server.core.CurrentRequestManager;
 
-public class WeiXinIdentityBrokerService implements IdentityProvider.AuthenticationCallback {
+public class WeiXinIdentityBrokerService implements UserAuthenticationIdentityProvider.AuthenticationCallback {
     public final RealmModel realmModel;
     private static final Logger logger = Logger.getLogger(IdentityBrokerService.class);
     public static final String LINKING_IDENTITY_PROVIDER = "LINKING_IDENTITY_PROVIDER";
@@ -86,7 +88,7 @@ public class WeiXinIdentityBrokerService implements IdentityProvider.Authenticat
     private HttpHeaders headers;
 
     @Override
-    public Response retryLogin(IdentityProvider<?> identityProvider, AuthenticationSessionModel authSession){
+    public Response retryLogin(UserAuthenticationIdentityProvider identityProvider, AuthenticationSessionModel authSession){
         // TODO: Implement this method
         return null;
     }
@@ -525,7 +527,7 @@ public class WeiXinIdentityBrokerService implements IdentityProvider.Authenticat
             session.users().addFederatedIdentity(realmModel, federatedUser, federatedIdentityModel);
 
 
-            String isRegisteredNewUser = authSession.getAuthNote(AbstractIdpAuthenticator.BROKER_REGISTERED_NEW_USER);
+            String isRegisteredNewUser = authSession.getAuthNote(AbstractIdentityProvider.BROKER_REGISTERED_NEW_USER);
             if (Boolean.parseBoolean(isRegisteredNewUser)) {
 
                 logger.debugf("Registered new user '%s' after first login with identity provider '%s'. Identity provider username is '%s' . ", federatedUser.getUsername(), providerId, context.getUsername());
@@ -540,7 +542,7 @@ public class WeiXinIdentityBrokerService implements IdentityProvider.Authenticat
                     });
                 }
 
-                if (context.getIdpConfig().isTrustEmail() && !Validation.isBlank(federatedUser.getEmail()) && !Boolean.parseBoolean(authSession.getAuthNote(AbstractIdpAuthenticator.UPDATE_PROFILE_EMAIL_CHANGED))) {
+                if (context.getIdpConfig().isTrustEmail() && !Validation.isBlank(federatedUser.getEmail()) && !Boolean.parseBoolean(authSession.getAuthNote(AbstractIdentityProvider.UPDATE_PROFILE_EMAIL_CHANGED))) {
                     logger.debugf("Email verified automatically after registration of user '%s' through Identity provider '%s' ", federatedUser.getUsername(), context.getIdpConfig().getAlias());
                     federatedUser.setEmailVerified(true);
                 }
@@ -743,7 +745,7 @@ public class WeiXinIdentityBrokerService implements IdentityProvider.Authenticat
     }
 
     @Override
-    public Response error(String s) {
+    public Response error(IdentityProviderModel idpConfig, String message) {
         return null;
     }
 

@@ -19,6 +19,14 @@ public class WeixinIdentityProviderConfig extends OIDCIdentityProviderConfig {
         return this.getConfig().get(WeiXinIdentityProvider.CUSTOMIZED_LOGIN_URL_FOR_PC);
     }
 
+    public void setCustomizedCallbackUrl(String customizedCallbackUrl) {
+        this.getConfig().put(WeiXinIdentityProvider.CUSTOMIZED_CALLBACK_URL, customizedCallbackUrl);
+    }
+
+    public String getCustomizedCallbackUrl() {
+        return this.getConfig().get(WeiXinIdentityProvider.CUSTOMIZED_CALLBACK_URL);
+    }
+
     public void setClientId2(String clientId2) {
         this.getConfig().put("clientId2", clientId2);
     }

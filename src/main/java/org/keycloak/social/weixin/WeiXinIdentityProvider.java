@@ -63,6 +63,7 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
     public static final String WECHAT_MOBILE_AUTH_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
     public static final String WECHAT_MP_DEFAULT_SCOPE = "snsapi_userinfo";
     public static final String CUSTOMIZED_LOGIN_URL_FOR_PC = "customizedLoginUrl";
+    public static final String CUSTOMIZED_CALLBACK_URL = "customizedCallbackUrl";
     public static final String WECHAT_MP_APP_ID = "clientId2";
     public static final String WECHAT_MP_APP_SECRET = "clientSecret2";
 
@@ -194,9 +195,17 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
         return OPEN_DEFAULT_SCOPE;
     }
 
+    public String resolveRedirectUri(String fallback) {
+        String customized = getConfig().getConfig().get(CUSTOMIZED_CALLBACK_URL);
+        if (customized != null && !customized.isBlank()) {
+            return customized.trim();
+        }
+        return fallback;
+    }
 
     @Override
     protected UriBuilder createAuthorizationUrl(AuthenticationRequest request) {
+        final String redirectUri = resolveRedirectUri(request.getRedirectUri());
         final UriBuilder uriBuilder;
         String ua = request.getSession().getContext().getRequestHeaders().getHeaderString("user-agent").toLowerCase();
         wxlogger.info(String.format("creating auth url from %s", ua));
@@ -208,7 +217,7 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
                     .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
                     .queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, "code")
                     .queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
-                    .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri());
+                    .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, redirectUri);
 
             return uriBuilder;
         } else {
@@ -227,7 +236,7 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
                             .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
                             .queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, "code")
                             .queryParam(OAUTH2_PARAMETER_CLIENT_ID, config.getConfig().get(OPEN_CLIENT_ID))
-                            .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri());
+                            .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, redirectUri);
 
                     return uriBuilder;
                 }
@@ -263,7 +272,7 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
                     uriBuilder
                             .queryParam("ticket", ticket)
                             .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
-                            .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
+                            .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, redirectUri)
                             .queryParam("qr-code-url", "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=" + ticket)
                     ;
                 }
@@ -274,7 +283,7 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
                 uriBuilder.queryParam(OAUTH2_PARAMETER_SCOPE, config.getDefaultScope())
                         .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
                         .queryParam(OAUTH2_PARAMETER_CLIENT_ID, config.getClientId())
-                        .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri());
+                        .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, redirectUri);
             }
         }
 

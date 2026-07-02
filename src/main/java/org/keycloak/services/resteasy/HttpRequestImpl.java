@@ -121,4 +121,9 @@ public class HttpRequestImpl implements HttpRequest {
         }
         return delegate.getUri();
     }
+
+    @Override
+    public boolean isProxyTrusted() {
+        return true;
+    }
 }

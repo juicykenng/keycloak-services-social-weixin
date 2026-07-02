@@ -20,8 +20,8 @@ import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 
-public class OAuth2WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth2IdentityProviderConfig>
-    implements SocialIdentityProvider<OAuth2IdentityProviderConfig> {
+public class OAuth2WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<WeixinIdentityProviderConfig>
+    implements SocialIdentityProvider<WeixinIdentityProviderConfig> {
 
     public static final String OAUTH2_PARAMETER_CLIENT_ID = "appid";
     public static final String OAUTH2_PARAMETER_CLIENT_SECRET = "secret";
@@ -34,7 +34,7 @@ public class OAuth2WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider
         return DEFAULT_SCOPE;
     }
 
-    public OAuth2WeiXinIdentityProvider(KeycloakSession session, OAuth2IdentityProviderConfig config) {
+    public OAuth2WeiXinIdentityProvider(KeycloakSession session, WeixinIdentityProviderConfig config) {
         super(session, config);
     }
 

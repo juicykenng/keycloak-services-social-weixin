@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 import org.keycloak.broker.oidc.OAuth2IdentityProviderConfig;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
-import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.UserAuthenticationIdentityProvider;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.social.weixin.mock.MockedAuthenticationSessionModel;
 import org.keycloak.social.weixin.mock.MockedHttpRequest;
@@ -103,7 +103,7 @@ public class WeiXinIdentityProviderTest {
         var mockUserInfo = Map.of("session_key", mockSessionKey);
 
         var mockAccessToken = "54_XzDD7MVKpVBX5m-VtsjAE9tyImVxUSKE2VgOzEBDemngNCAVwFfPr3RNusGjcBrZl2CPyQoONP4kqUI24Wl1KYZO-ZC2emmLR1bZfUPoH2FXd5iz780ZTOhb3lkDjK8zS0n31JdhXPwtPaqVDKHeAAAMTQ";
-        var expectedContextData = Map.of(IdentityProvider.FEDERATED_ACCESS_TOKEN, mockAccessToken, "UserInfo", mockUserInfo);
+        var expectedContextData = Map.of(UserAuthenticationIdentityProvider.FEDERATED_ACCESS_TOKEN, mockAccessToken, "UserInfo", mockUserInfo);
 
         final String sessionKeyResponse = "{\"session_key\":\"n1HE228Kq\\/i3HRlz\\/K71Aw==\",\"openid\":\"odrHN4p1UMWRdQfMK4xm9dtQXvf8\",\"unionid\":\"oLLUdsyyVLcjdxFXiOV2pZYuOdR0\"}";
         var expectedJsonProfile = new ObjectMapper().readTree(sessionKeyResponse);
@@ -120,7 +120,7 @@ public class WeiXinIdentityProviderTest {
         var res = sut.getFederatedIdentity(sessionKeyResponse, WechatLoginType.FROM_WECHAT_MINI_PROGRAM, "{\"access_token\":\"" + mockAccessToken + "\",\"expires_in\":7200}");
         var contextData = res.getContextData();
         Assertions.assertNotNull(contextData);
-        Assertions.assertEquals(expectedContextData.get(IdentityProvider.FEDERATED_ACCESS_TOKEN), contextData.get(IdentityProvider.FEDERATED_ACCESS_TOKEN));
+        Assertions.assertEquals(expectedContextData.get(UserAuthenticationIdentityProvider.FEDERATED_ACCESS_TOKEN), contextData.get(UserAuthenticationIdentityProvider.FEDERATED_ACCESS_TOKEN));
         Assertions.assertEquals(expectedUser.toString(), res.toString());
     }
 }

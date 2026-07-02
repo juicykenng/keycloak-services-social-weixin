@@ -6,7 +6,7 @@ import java.util.Objects;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
-import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.UserAuthenticationIdentityProvider;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.events.Errors;
@@ -27,7 +27,7 @@ import jakarta.ws.rs.core.Response;
 public class Endpoint extends WeiXinIdentityProvider {
 
     private final WeiXinIdentityProvider weiXinIdentityProvider;
-    protected IdentityProvider.AuthenticationCallback callback;
+    protected UserAuthenticationIdentityProvider.AuthenticationCallback callback;
     protected RealmModel realm;
     protected EventBuilder event;
 
@@ -37,7 +37,7 @@ public class Endpoint extends WeiXinIdentityProvider {
     @Context
     protected org.keycloak.http.HttpRequest request;
 
-    public Endpoint(WeiXinIdentityProvider weiXinIdentityProvider, IdentityProvider.AuthenticationCallback callback, RealmModel realm, EventBuilder event) {
+    public Endpoint(WeiXinIdentityProvider weiXinIdentityProvider, UserAuthenticationIdentityProvider.AuthenticationCallback callback, RealmModel realm, EventBuilder event) {
         super(weiXinIdentityProvider.session, weiXinIdentityProvider.getConfig());
 
         this.weiXinIdentityProvider = weiXinIdentityProvider;
@@ -64,7 +64,7 @@ public class Endpoint extends WeiXinIdentityProvider {
                 return callback.cancelled(weiXinIdentityProvider.getConfig());
             } else {
                 AbstractOAuth2IdentityProvider.logger.error(error + " for broker login " + weiXinIdentityProvider.getConfig().getProviderId());
-                return callback.error(state + " " + Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                return callback.error(weiXinIdentityProvider.getConfig(), state + " " + Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
             }
         }
 
@@ -139,7 +139,8 @@ public class Endpoint extends WeiXinIdentityProvider {
                 .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_CODE, authorizationCode)
                 .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_ID, mobileMpClientId)
                 .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_SECRET, mobileMpClientSecret)
-                .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI))
+                .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.resolveRedirectUri(
+                        weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI)))
                 .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_GRANT_TYPE, AbstractOAuth2IdentityProvider.OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE), null};
         }
 
@@ -160,14 +161,16 @@ public class Endpoint extends WeiXinIdentityProvider {
             return new SimpleHttp[]{SimpleHttp.doPost(weiXinIdentityProvider.getConfig().getTokenUrl(), weiXinIdentityProvider.session).param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_CODE, authorizationCode)
                 .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_ID, weiXinIdentityProvider.getConfig().getConfig().get(WeiXinIdentityProvider.OPEN_CLIENT_ID))
                 .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_SECRET, weiXinIdentityProvider.getConfig().getConfig().get(WeiXinIdentityProvider.OPEN_CLIENT_SECRET))
-                .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI))
+                .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.resolveRedirectUri(
+                        weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI)))
                 .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_GRANT_TYPE, AbstractOAuth2IdentityProvider.OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE), null};
         }
 
         return new SimpleHttp[]{SimpleHttp.doPost(weiXinIdentityProvider.getConfig().getTokenUrl(), weiXinIdentityProvider.session).param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_CODE, authorizationCode)
             .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_ID, weiXinIdentityProvider.getConfig().getClientId())
             .param(WeiXinIdentityProvider.OAUTH2_PARAMETER_CLIENT_SECRET, weiXinIdentityProvider.getConfig().getClientSecret())
-            .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI))
+            .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI, weiXinIdentityProvider.resolveRedirectUri(
+                    weiXinIdentityProvider.getConfig().getConfig().get(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_REDIRECT_URI)))
             .param(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_GRANT_TYPE, AbstractOAuth2IdentityProvider.OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE), null};
     }
 }
